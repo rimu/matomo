@@ -196,7 +196,7 @@ class PasswordResetter
         if ($resetInfo === false
             || empty($resetInfo['hash'])
             || empty($resetInfo['keySuffix'])
-            || !$this->isTokenValid($resetToken, $user, $resetInfo['keySuffix'])
+            || !$this->isTokenValid($resetToken, $user)
         ) {
             throw new Exception(Piwik::translate('Login_InvalidOrExpiredToken'));
         }
@@ -244,20 +244,12 @@ class PasswordResetter
      * @param string $keySuffix The suffix used in generating a token.
      * @return bool true if valid, false otherwise.
      */
-    public function isTokenValid($token, $user, $keySuffix)
+    public function isTokenValid($token, $user)
     {
-        $now = time();
-
-        // token valid for 24 hrs (give or take, due to the coarse granularity in our strftime format string)
-        for ($i = 0; $i <= 24; $i++) {
-            $generatedToken = $this->generatePasswordResetToken($user, $keySuffix, $now + $i * 60 * 60);
-            if ($generatedToken === $token) {
-                return true;
-            }
-        }
+        $stored_token = Option::get("resetpassword_{$user['email']}");
 
         // fails if token is invalid, expired, password already changed, other user information has changed, ...
-        return false;
+        return ($stored_token != false && $stored_token == $token);
     }
 
     /**
@@ -273,19 +265,16 @@ class PasswordResetter
      */
     public function generatePasswordResetToken($user, $keySuffix, $expiryTimestamp = null)
     {
-        /*
-         * Piwik does not store the generated password reset token.
-         * This avoids a database schema change and SQL queries to store, retrieve, and purge (expired) tokens.
-         */
         if (!$expiryTimestamp) {
             $expiryTimestamp = $this->getDefaultExpiryTime();
         }
 
         $expiry = date('YmdH', $expiryTimestamp);
-        $token = $this->generateSecureHash(
-            $expiry . $user['login'] . $user['email'] . $user['ts_password_modified'] . $keySuffix,
-            $user['password']
-        );
+        $token = Common::getRandomString($length = 50);
+        Option::set("resetpassword_{$user['email']}", $token);
+        // @todo: add 'expiry' functionality to Option class and set expiry to 24 hours
+        // alternatively, develop a Cache class that does the same thing as Option + expiry with a choice of MySQL,
+        // Redis or Memcached backends
         return $token;
     }
 
