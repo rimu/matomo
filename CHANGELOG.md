@@ -4,6 +4,15 @@ This is the Developer Changelog for Matomo platform developers. All changes in o
 
 The Product Changelog at **[matomo.org/changelog](https://matomo.org/changelog)** lets you see more details about any Matomo release, such as the list of new guides and FAQs, security fixes, and links to all closed issues. 
 
+## Matomo 4.12.5
+
+To improve security, when running a site locally clicks on file:// links will no longer be tracked. This behaviour can be restored by using a new JS parameter as described below.
+
+### New JS parameter
+* If you want to use Matomo on a page that has been opened from disk (rather than served remotely), add this JS to your integration snippetL 
+  
+`_paq.push(['enableFileTracking']);` 
+
 ## Matomo 4.12.4
 
 ### New config.ini.php settings

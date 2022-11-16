@@ -4127,6 +4127,9 @@ if ($mysql) {
         // do not track
         tracker3.setDoNotTrack(false);
 
+        // track file views
+        tracker3.enableFileTracking();
+
         // User ID
         var userIdString = 'userid@mydomain.org';
         tracker3.setUserId(userIdString);
@@ -4259,6 +4262,8 @@ if ($mysql) {
             ok( /DeleteCustomVariableCookie/.test( results ), "tracking request deleting custom variable" );
             ok( /DoTrack/.test( results ), "setDoNotTrack(false)" );
             ok( ! /DoNotTrack/.test( results ), "setDoNotTrack(true)" );
+            ok( ! /TrackFile/.test( results ), "enableFileTracking()" );
+
 
             // custom tracking request
             ok( /myFoo=bar&baz=1&idsite=1/.test( results ), "trackRequest sends custom parameters");
